@@ -44,7 +44,7 @@ dependencies {
 6. **Переход между фраментами по нажатию кнопки:**
     ```kotlin
        binding.buttonFindFragment.setOnClickListener { view : View ->
-            view.findNavController().navigate(R.id.action_startFragment_to_findFragment)
+            view.findNavController().navigate(R.id.action_firstFragment_to_secondFragment)
         }
     ```
 7. **Изменение назначения кнопки "Назад"**
@@ -105,7 +105,7 @@ dependencies {
              super.onCreateOptionsMenu(menu, inflater)
              inflater.inflate(R.menu.options_menu, menu)
      }
-    ```
+     ```
   * Переопределите onOptionsItemSelected()метод, чтобы выполнить
     соответствующее действие при касании пункта меню. В этом случае
     действие заключается в переходе к фрагменту, который совпадает idс
@@ -116,7 +116,7 @@ dependencies {
             onNavDestinationSelected(item,requireView().findNavController())
             || super.onOptionsItemSelected(item)
     } 
-    ```
+     ```
 10. **Добавление панели навиации**
 * добавляем зависимость в *build.gradle*
      ```groovy
@@ -137,36 +137,43 @@ dependencies {
           * В предварительном просмотре или в дереве компонентов щелкните элемент меню, чтобы отобразить его атрибуты.
           * Установите для **id** -> id фрагмента на который переходим и в **title** - имя в меню, **icon** - картинку менюшки
      * В **activity_main.xml** добавить **DrawerLayout** в качестве корневого представления и код **NavigationView**
-       ```<?xml version="1.0" encoding="utf-8"?>
-           <layout xmlns:android="http://schemas.android.com/apk/res/android"
-               xmlns:app="http://schemas.android.com/apk/res-auto"
-               xmlns:tools="http://schemas.android.com/tools">
-               <data></data>
-               <androidx.drawerlayout.widget.DrawerLayout
-                   android:id="@+id/drawerLayout"
+       ```xml
+       <?xml version="1.0" encoding="utf-8"?>
+       <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+           xmlns:app="http://schemas.android.com/apk/res-auto"
+           xmlns:tools="http://schemas.android.com/tools"
+           android:id="@+id/constraintLayout"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent">
+       
+           <LinearLayout
+               android:layout_width="match_parent"
+               android:layout_height="match_parent">
+       
+               <fragment
+                   android:id="@+id/myNavHostFragment"
+                   android:name="androidx.navigation.fragment.NavHostFragment"
                    android:layout_width="match_parent"
-                   android:layout_height="match_parent">
-           
-                   <androidx.constraintlayout.widget.ConstraintLayout
-                      ... 
-                   </androidx.constraintlayout.widget.ConstraintLayout>
-                   
-                   <com.google.android.material.navigation.NavigationView
-                       android:id="@+id/navView"
-                       android:layout_width="wrap_content"
-                       android:layout_height="match_parent"
-                       android:layout_gravity="start"
-                       app:headerLayout="@layout/nav_header"
-                       app:menu="@menu/navdrawer_menu" />
-                       app:navGraph="@navigation/navigation" />
-               </androidx.drawerlayout.widget.DrawerLayout>
-       </layout>    
+                   android:layout_height="match_parent"
+                   app:defaultNavHost="true"
+                   app:navGraph="@navigation/navigation" />
+           </LinearLayout>
+       
+           <com.google.android.material.navigation.NavigationView
+               android:id="@+id/navView"
+               android:layout_width="wrap_content"
+               android:layout_height="match_parent"
+               android:layout_gravity="start"
+               app:headerLayout="@layout/nav_header"
+               app:menu="@menu/navdrawer_menu" />
+       </androidx.drawerlayout.widget.DrawerLayout>
        ```
 * Отображение панели "Сдвигом слева"
     * Откройте MainActivity.kt файл Kotlin.
     * В onCreate() добавьте код, который позволяет пользователю отображать панель навигации:
          ```kotlin
-             NavigationUI.setupWithNavController(binding.navView, navController)    
+             val navController = this.findNavController(R.id.myNavHostFragment)
+             NavigationUI.setupWithNavController(binding.navView, navController)
          ```
 * Отображение панели с помощью кнопки "ящика" ![](https://developer.android.com/codelabs/kotlin-android-training-add-navigation/img/7277f85db3a1ad13.png)
   * В MainActivity.kt файле Kotlin добавьте lateinit drawerLayout переменную-член для представления макета ящика:
@@ -177,7 +184,7 @@ dependencies {
     ```kotlin
     val binding = DataBindingUtil.setContentView<ActivityMainBinding>(this,
                 R.layout.activity_main)
-
+    
     drawerLayout = binding.drawerLayout
     ```
   * Добавьте в drawerLayout метод третий параметр setupActionBarWithNavController()
@@ -191,3 +198,54 @@ dependencies {
           return NavigationUI.navigateUp(navController, drawerLayout)
       }
     ```
+
+# Safe Args
+
+ **Safe Args** - это подключаемый модуль Gradle, который служит дл пеедачи параметров из оного фрамента в друой. Он генерирует код и классы, которые помогают обнаруживать ошибки во время компиляции, которые в противном случае не могли бы появиться до тех пор, пока приложение не запустится.
+
+1. Добавляем плагин
+
+   * Добавьте navigation-safe-args-gradle-plugin зависимость в **build.gradle(project)**
+
+   ```groovy
+        dependencies {
+        // Adding the safe-args dependency to the project Gradle file
+        classpath "androidx navigation:navigation-safe-args-gradle-plugin:$navigationVersion"
+        }
+   ```
+
+   * В **build.gradle(app)** добавбте плагин *androidx.navigation.safeargs*
+
+   ```groovy
+    // Adding the apply plugin statement for safeargs
+        apply plugin: 'androidx.navigation.safeargs'
+   ```
+
+2. **Переход между фраментами по нажатию кнопки:**
+
+   ```kotlin
+      binding.buttonFindFragment.setOnClickListener { view : View ->
+           view.findNavController().navigate(FirstFragmentDirections.actionFirstFragmentToSecondFragment())
+       }
+   ```
+
+3. Передача аргуметов:
+
+   Переходим res - navigation.xml, выбираем нужный фрагмент, на панели атрибутов дабавляем арументы. 
+
+   добавляем арументы, которые нужно передать, в параметы метода `actionFirstFragmentToSecondFragment`
+
+   ```kotlin
+      binding.buttonFindFragment.setOnClickListener { view : View ->
+         view.findNavController().navigate(FirstFragmentDirections.actionFirstFragmentToSecondFragment(ARGUMENT))
+       }
+   ```
+
+4. Извлечение арументов:
+
+   ```
+   val args = SecondFragmentArgs.fromBundle(requireArguments())
+   val argument = args.argument
+   ```
+
+   
